@@ -1,2 +1,2 @@
-#src
-- I have split each Etude into it's own package
+# src
+- Each Etude is put into its own package
