@@ -1,6 +1,5 @@
-package date_validator;
+package date_parser;
 
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
@@ -15,8 +14,8 @@ public class DateParser {
 
     /** ArrayList of Strings containing 3 letter abbreviations for each month of the
      * Credit to https://stackoverflow.com/questions/1005073/initialization-of-an-arraylist-in-one-line for this
-     * // TODO is this right way to reference?*/
-    private ArrayList<String> months = new ArrayList<String>(
+     */
+    private final ArrayList<String> months = new ArrayList<String>(
             Arrays.asList("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"));
 
     /**
@@ -361,5 +360,20 @@ public class DateParser {
      */
     private boolean monthIntInRange(int month) {
         return (1 <= month & month <= 12);
+    }
+
+    /**
+     * Starts the date parser program
+     */
+    public static void start() {
+        System.out.println("Welcome to date parser, please enter a date!");
+        Scanner scanner = new Scanner(System.in);
+        String date = scanner.nextLine();
+        DateParser dateParser = new DateParser();
+        System.out.println(dateParser.parseDate(date));
+    }
+
+    public static void main(String args[]) {
+        DateParser.start();
     }
 }

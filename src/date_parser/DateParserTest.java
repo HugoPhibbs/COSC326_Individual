@@ -1,4 +1,4 @@
-package date_validator;
+package date_parser;
 
 import org.junit.Test;
 
