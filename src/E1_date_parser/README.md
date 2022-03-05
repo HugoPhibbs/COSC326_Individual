@@ -1,4 +1,43 @@
-package date_parser;
+# COSC326 Etude 1: Dates
+
+## Description
+- This is a command line program that parses a user inputted date and outputs this into a standard format. 
+- Full program specs can be seen in the date_brief.pdf
+
+# How to Use
+- **IMPORTANT**: Instructions bellow are for running the program from the extracted zip folder. 
+- Download the zip folder above, and extract it. This is the top level submission directory for the next steps
+
+## Using Jar
+- Ensure you are in the top level directory for this submission
+- Enter this command using your shell:
+```
+java -jar E1_date_parser.jar
+```
+
+## Traditional Compilation and Running
+- Navigate to the directorry containing source code using:
+```
+cd code
+```
+- To compile the source code:
+```
+javac DateParser.java
+```
+- To run:
+```
+java DateParser
+```
+
+## Using the application
+- After starting the application, either with jar or traditional method. Follow prompts displayed.  
+
+# Tests
+- I put all my tests into a JUnit test class that I have included bellow. And in the code directory with other source code
+- This uses JUnit 5.7
+
+```java
+package E1_date_parser;
 
 import org.junit.Test;
 
@@ -10,7 +49,9 @@ public class DateParserTest {
 
     @Test
     public void testIrrelevantInput() {
-        assertThrows(AssertionError.class, () -> {dateParser.parseDate(null);});
+        assertThrows(AssertionError.class, () -> {
+            dateParser.parseDate(null);
+        });
         assertEquals(" - INVALID: Date does not follow a valid separator scheme!", dateParser.parseDate(""));
         assertEquals("-1 - INVALID: Date does not follow a valid separator scheme!", dateParser.parseDate("-1"));
     }
@@ -27,7 +68,7 @@ public class DateParserTest {
     }
 
     @Test
-    public void testSmallDays(){
+    public void testSmallDays() {
         assertEquals("09 Dec 2001", dateParser.parseDate("9/12/2001"));
         assertEquals("09 Dec 2001", dateParser.parseDate("09/12/2001"));
         assertEquals("0/2/2001 - INVALID: Day cannot be less than or equal to 0!", dateParser.parseDate("0/2/2001"));
@@ -35,13 +76,13 @@ public class DateParserTest {
     }
 
     @Test
-    public void testDaysInMonth(){
+    public void testDaysInMonth() {
         assertEquals("31 Dec 1999", dateParser.parseDate("31/12/99"));
         assertEquals("31/11/88 - INVALID: Day is too large for this month and year!", dateParser.parseDate("31/11/88"));
     }
 
     @Test
-    public void testYearRange(){
+    public void testYearRange() {
         assertEquals("01 Jan 1753", dateParser.parseDate("1/1/1753"));
         assertEquals("31 Dec 1753", dateParser.parseDate("31/12/1753"));
         assertEquals("31 Dec 3000", dateParser.parseDate("31/12/3000"));
@@ -58,7 +99,7 @@ public class DateParserTest {
     }
 
     @Test
-    public void testYy(){
+    public void testYy() {
         assertEquals("07 Oct 2001", dateParser.parseDate("7/10/01"));
         assertEquals("09 Apr 1999", dateParser.parseDate("9/4/99"));
         assertEquals("09 Apr 2000", dateParser.parseDate("9/4/00"));
@@ -76,7 +117,7 @@ public class DateParserTest {
     }
 
     @Test
-    public void testMm(){
+    public void testMm() {
         assertEquals("04 Sep 1886", dateParser.parseDate("4/9/1886"));
         assertEquals("4/90/1886 - INVALID: Integer for month is not in range! Needs to be between 1 and 12 (inclusive)", dateParser.parseDate("4/90/1886"));
         assertEquals("4/13/1886 - INVALID: Integer for month is not in range! Needs to be between 1 and 12 (inclusive)", dateParser.parseDate("4/13/1886"));
@@ -84,3 +125,4 @@ public class DateParserTest {
         assertEquals("4/-1/1886 - INVALID: Integer for month is not in range! Needs to be between 1 and 12 (inclusive)", dateParser.parseDate("4/-1/1886"));
     }
 }
+```
