@@ -16,7 +16,7 @@ java -jar date_parser.jar
 ```
 
 ## Traditional Compilation and Running
-- Navigate to the directory with the code using:
+- Navigate to the directorry containing source code using:
 ```
 cd code
 ```
@@ -30,7 +30,7 @@ java DateParser
 ```
 
 ## Using the application
-- After starting the application, either with jar or traditional method. Follow prompts provided.
+- After starting the application, either with jar or traditional method. Follow prompts displayed.  
 
 # Tests
 - I put all my tests into a JUnit test class that I have included bellow. And in the code directory with other source code
