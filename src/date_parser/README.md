@@ -1,17 +1,38 @@
-# COSC326 Dates
+# COSC326 Etude 1: Dates
 
-# Description
+## Description
 - This is a command line program that parses a user inputted date and outputs this into a standard format. 
 - Full program specs can be seen in the date_brief.pdf
 
 # How to Use
-- Ensure all classes contained in this package are in the same directory
-- use javac App.java to compile 
 
-# Test Cases
-- I put all my tests into a JUnit test class that I have included bellow
+## Using Jar
+- Ensure you are in the top level directory for this submission
+- Enter this command using your shell:
+```
+java -jar date_parser.jar
+```
+
+## Traditional Compilation and Running
+- Navigate to the directory with the code using:
+```
+cd code
+```
+- To compile the source code:
+```
+javac DateParser.java
+```
+- To run:
+```
+java DateParser
+```
+
+## Using the application
+- After starting the application, either with jar or traditional method. Follow prompts provided.
+
+# Tests
+- I put all my tests into a JUnit test class that I have included bellow. And in the code directory with other source code
 - This uses JUnit 5.7
-
 ```java
 package date_parser;
 
