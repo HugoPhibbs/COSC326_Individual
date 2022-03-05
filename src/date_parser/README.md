@@ -2,7 +2,7 @@
 
 # Description
 - This is a command line program that parses a user inputted date and outputs this into a standard format. 
-- Full program specs can be seen in the pdf brief file
+- Full program specs can be seen in the date_brief.pdf
 
 # How to Use
 - Ensure all classes contained in this package are in the same directory
