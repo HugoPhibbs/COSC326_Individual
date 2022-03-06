@@ -12,7 +12,7 @@
 - Ensure you are in the top level directory for this submission
 - Enter this command using your shell:
 ```
-java -jar E1_date_parser.jar
+java -jar date_parser.jar
 ```
 
 ## Traditional Compilation and Running
