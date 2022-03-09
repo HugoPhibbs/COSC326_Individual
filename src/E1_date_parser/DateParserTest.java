@@ -9,6 +9,14 @@ public class DateParserTest {
     DateParser dateParser = new DateParser();
 
     @Test
+    public void testExamples() {
+        assertEquals("04 Jun 1992", dateParser.parseDate("4-6-92"));
+        assertEquals("04 Jun 1992", dateParser.parseDate("04/06/1992"));
+        assertEquals("03 Aug 1997", dateParser.parseDate("3 Aug 97"));
+        assertEquals("12 Sep 1955", dateParser.parseDate("12-Sep-1955"));
+    }
+
+    @Test
     public void testIrrelevantInput() {
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper(null));
         assertEquals(" - INVALID: Date does not follow a valid separator scheme!", dateParser.parseDate(""));
@@ -90,7 +98,7 @@ public class DateParserTest {
 
     @Test
     public void testDaysInMonth(){
-        assertEquals("31 Dec 2099", dateParser.parseDate("31/12/99"));
+        assertEquals("31 Dec 1999", dateParser.parseDate("31/12/99"));
         assertThrows(RangeError.class, () -> dateParser.parseDateHelper("31/11/88"));
     }
 
@@ -115,6 +123,7 @@ public class DateParserTest {
     @Test
     public void testYears() {
         assertThrows(LengthError.class, () -> dateParser.parseDateHelper("01 01 001"));
+        assertThrows(ParseError.class, () -> dateParser.parseDateHelper("12/1/109"));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper("01 01 0001"));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper("01 01 0840"));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper("01 01 0099"));
@@ -136,10 +145,12 @@ public class DateParserTest {
     @Test
     public void testYy(){
         assertEquals("07 Oct 2001", dateParser.parseDate("7/10/01"));
-        assertEquals("09 Apr 2099", dateParser.parseDate("9/4/99"));
+        assertEquals("09 Apr 1999", dateParser.parseDate("9/4/99"));
         assertEquals("09 Apr 2000", dateParser.parseDate("9/4/00"));
         assertEquals("09 Apr 2022", dateParser.parseDate("9/4/22"));
-        assertEquals("09 Apr 2023", dateParser.parseDate("9/4/23"));
+        assertEquals("09 Apr 1963", dateParser.parseDate("9/4/63"));
+        assertEquals("09 Apr 2049", dateParser.parseDate("9/4/49"));
+        assertEquals("09 Apr 1950", dateParser.parseDate("9/4/50"));
     }
 
     @Test
