@@ -2,6 +2,7 @@ package E1_date_parser;
 
 import org.w3c.dom.ranges.Range;
 
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -33,18 +34,49 @@ public class DateParser {
     // Main parse methods //
 
     public static void main(String args[]) {
-        DateParser.start();
+        new DateParser().start();
     }
 
     /**
      * Starts the date parser program
      */
-    public static void start() {
-        System.out.println("Welcome to date parser, please enter a date!");
+    public void start() {
+        ArrayList<String> dates = getInput();
+        printParsedDates(dates);
+    }
+
+    /**
+     * Parses each date string and prints the result of each parsing on a new line
+     *
+     * @param dates ArrayList containing Strings for entered dates
+     */
+    private void printParsedDates(ArrayList<String> dates) {
+        System.out.println("Output:");
+        for (String date : dates) {
+            System.out.println(parseDate(date));
+        }
+    }
+
+    /**
+     * Gets an input of a dates to be parsed from a user
+     *
+     * @return ArrayList containing Strings for the dates that a user has entered
+     */
+    private ArrayList<String> getInput() {
+        System.out.println("""
+                Welcome to date parser\s
+                
+                Instructions:
+                Enter one date per line\s
+                Press enter on an empty line to submit""");
         Scanner scanner = new Scanner(System.in);
+        ArrayList<String> dates = new ArrayList<String>();
         String date = scanner.nextLine();
-        DateParser dateParser = new DateParser();
-        System.out.println(dateParser.parseDate(date));
+        while (!date.equals("")) {
+            dates.add(date);
+            date = scanner.nextLine();
+        }
+        return dates;
     }
 
     /**
@@ -489,7 +521,10 @@ public class DateParser {
      * @return int for inputted yy converted to yyyy
      */
     private int yyToYyyy(int yy) throws AssertionError{
-        return 2000 + yy;
+        if (yy < 50) {
+            return 2000 + yy;
+        }
+        return 1900 + yy;
     }
 
     // Utility methods //
