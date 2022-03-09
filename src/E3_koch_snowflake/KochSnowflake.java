@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
+
+// TODO support creating heaps of jframe windows!, ie a batch input from a user
+
 /**
  * Program class to draw a Koch snowflake according to input from a user
  */
