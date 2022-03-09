@@ -13,7 +13,14 @@ import java.util.ArrayList;
  */
 public class KochDrawPanel extends JPanel {
 
+    /**
+     * ArrayList of Line2D.Double objects for sides of a Koch snowflake
+     */
     ArrayList<Line2D.Double> sides;
+
+    /**
+     * int for the order of Koch snowflake to be drawn
+     */
     int order;
 
     /**
@@ -39,6 +46,13 @@ public class KochDrawPanel extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
+    /**
+     * Overrides the paint() method in JPanel.
+     *
+     * Paints a Koch Snowflake instead
+     *
+     * @param graphics Graphics object to be drawn on
+     */
     public void paint(Graphics graphics) {
         Graphics2D graphics2D = (Graphics2D) graphics;
         for (Line2D side : sides) {
