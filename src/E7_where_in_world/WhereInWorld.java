@@ -3,6 +3,7 @@ package E7_where_in_world;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Scanner;
 
 // TODO how to handle incorrect input
 
@@ -34,8 +35,9 @@ public class WhereInWorld {
     private String[] splitFirstPart(String firstPart) {
         String[] splitStr = firstPart.split(" ");
         if (directions.contains(splitStr[1])){
-
+            return null;
         }
+        return null;
     }
 
     /**
@@ -56,16 +58,18 @@ public class WhereInWorld {
     private boolean firstPartIsValid(String firstPart) {
         String[] splitStr = firstPart.split(" ");
         if (splitStr.length == 2){
-            if
-        }
-        if (!(splitStr.length == 1 || splitStr.length ==2)) {
+            // TODO
             return false;
         }
+        if (!(splitStr.length == 1)) {
+            return false;
+        }
+        return false;
     }
 
 
     private boolean firstPartIsValid(String[] splitFirstPart){
-        
+        return false; // TODO
     }
     /**
      * Gets the label from an inputted position string from a user.
@@ -73,7 +77,7 @@ public class WhereInWorld {
      * @param position String describing the position of a place on a map
      * @return String for the label of a position. Null if there is none
      */
-    public String getLabel(String position) {
+    private String getLabel(String position) {
         String[] splitPosition = position.split(" ");
         String label = splitPosition[splitPosition.length-1];
         if (!directions.contains(label) & !isNumeric(label)) {
@@ -88,25 +92,49 @@ public class WhereInWorld {
      * @param position String for the position on a map
      * @return boolean as described
      */
-    public boolean hasLabel(String position) {
+    private boolean hasLabel(String position) {
         return (getLabel(position) != null);
     }
 
     /**
-     * Strips the label off a position String, if it has one.
+     * Strips the label off a position String.
+     *
+     * .
      *
      * @param position String for the position on a map
      * @return String for inputted position stripped of it's label
+     * @throws AssertionError if the position does not have a label
      */
-    public String stripLabel(String position) {
-        if (hasLabel(position)) {
-            int labelLength = getLabel(position).length();
-            position = position.substring(0, position.length()-labelLength);
-        }
+    private String stripLabel(String position) throws AssertionError{
+        assert hasLabel(position);
+        int labelLength = getLabel(position).length();
+        position = position.substring(0, position.length()-labelLength-1);
         return position;
     }
 
-    public static void main(String[] args) {
+    public void start() {
 
+    }
+
+    public void test() {
+        String str = inputPosition();
+        System.out.println(stripLabel(str));
+    }
+
+    /**
+     * Asks user to input a position on a map, following the convention
+     * of horizontal coordinates.
+     *
+     * @return String that was entered
+     */
+    private String inputPosition() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter a horizontal coordinate (with an optional label):");
+        return scanner.nextLine();
+    }
+
+    public static void main(String[] args) {
+        WhereInWorld whereInWorld = new WhereInWorld();
+        whereInWorld.test();
     }
 }
