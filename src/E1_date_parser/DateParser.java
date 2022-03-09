@@ -1,5 +1,8 @@
 package E1_date_parser;
 
+import org.w3c.dom.ranges.Range;
+
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
@@ -19,6 +22,12 @@ public class DateParser {
             Arrays.asList("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"));
 
     /**
+     * String array containing the possible separators contained in a date
+     */
+    private final ArrayList<String> separators = new ArrayList<String>(Arrays.asList("/", "-", " "));
+
+
+    /**
      * Parses an inputted date from a user
      *
      * If the date is valid, then it prints it out in a readable format. Otherwise, it prints the inputted date
@@ -28,16 +37,45 @@ public class DateParser {
      * @return String for the inputted date converted into a readable format
      */
     public String parseDate(String date) {
-        assert date != null: "Date cannot be null!";
         try {
-            HashMap<String, String> splitDateMap = this.splitDate(date);
-            String year = this.parseYear(splitDateMap.get("Year"));
-            String month = this.parseMonth(splitDateMap.get("Month"));
-            String day = this.parseDay(splitDateMap.get("Day"), month, Integer.parseInt(year));
-            return String.format("%s %s %s", day, month, year);
+            return parseDateHelper(date);
         }
         catch (ParseError pe) {
             return String.format("%s%s", date, pe);
+        }
+    }
+
+    /**
+     * Helper method for parseDate
+     *
+     * Does the actual parsing part
+     *
+     * Extracted into its own method for easy testing, so errors are thrown up to tests
+     *
+     * @param date String for a date entered
+     * @throws ParseError if a date cannot be parsed, useful for testing
+     * @return String for a parsed date
+     */
+    public String parseDateHelper(String date) throws ParseError{
+        preParseDateChecks(date);
+        HashMap<String, String> splitDateMap = this.splitDate(date);
+        checkWhiteSpace(splitDateMap);
+        String year = this.parseYear(splitDateMap.get("Year"));
+        String month = this.parseMonth(splitDateMap.get("Month"));
+        String day = this.parseDay(splitDateMap.get("Day"), month, Integer.parseInt(year));
+        return String.format("%s %s %s", day, month, year);
+    }
+
+
+    /**
+     * Performs checks on an inputted date value before any actual parsing can happen
+     *
+     * @param date String for a date that is entered by a user
+     * @throws ParseError if an inputted date does not pass pre parse checks
+     */
+    private void preParseDateChecks(String date) throws ParseError{
+        if (date == null) {
+            throw new ParseError("Date cannot be null!");
         }
     }
 
@@ -58,20 +96,68 @@ public class DateParser {
      * @return HashMap containing the parts of the date, keys being parts of the date
      */
     private HashMap<String, String> splitDate(String date) {
-        // Splits up a date according to a separator
-        String [] separators = {"/", "-", " "};
+        /*
+        Should follow scheme of day-seperator-month-year.
+
+        So what should be happening is that we just split the date according to it's separator.
+
+        if it's length 3, it may follow a valid format, otherwise it doesn't.
+
+        Transfer the elements in the split date into respective day, month and year values, if they can be parsed in the
+        first place!
+
+        Please note that splitting a string that has a seperator twice in a row results in an empty string,
+
+        So this is accounted for anyways.
+
+         */
         ArrayList<String[]> splitDates = new ArrayList<String[]>();
         for (String sep : separators) {
             String[] splitDate = date.split(sep);
-            if (this.splitDateLengthIsValid(splitDate)) {
+            if (this.splitDateLengthIsValid(splitDate) & hasCorrectNumSeparators(date, sep)) {
                 splitDates.add(splitDate);
             }
         }
-        if (splitDates.size() == 0){
-            throw new ParseError("Date does not follow a valid separator scheme!");
+        if (splitDates.size() != 1){
+            throw new SeparatorError("Date does not follow a valid separator scheme!");
         }
-        assert splitDates.size() == 1: "Date cannot use two different separators at once!";
-        return this.dateArrayToDict(splitDates.get(0));
+        HashMap<String, String> dateMap = dateArrayToDict(splitDates.get(0));
+        checkWhiteSpace(dateMap);
+        return dateMap;
+    }
+
+    /**
+     * Checks if a date has the correct number of separators contained within it
+     *
+     * @param sep String for the separator to be counted
+     * @param date String for an inputted date
+     * @return boolean as described
+     */
+    private boolean hasCorrectNumSeparators(String date, String sep) {
+        int count = 0;
+        for (int i =0; i < date.length(); i++) {
+            if (Character.toString(date.charAt(i)).equals(sep)){
+                count ++;
+            }
+        }
+        return count == 2;
+    }
+
+    /**
+     * Finds out if any of the values for Month, day or year have white space
+     *
+     * Used code from https://stackabuse.com/java-how-to-get-keys-and-values-from-a-map/
+     *
+     * @throws ParseError if any of the values for Month, Day or Year contained in dateDict have whitespce
+     * @param dateMap HashMap<String, String> containing parts of a date
+     */
+    private void checkWhiteSpace(HashMap<String, String> dateMap){
+        for (Map.Entry<String, String> valuePair : dateMap.entrySet()) {
+            String dateKey = valuePair.getKey();
+            if (containsWhiteSpace(dateMap.get(dateKey))) {
+                throw new WhiteSpaceError(WhiteSpaceError.errorMessage(dateKey));
+            }
+        }
     }
 
     /***
@@ -102,22 +188,29 @@ public class DateParser {
      */
     private String parseDay(String day, String month, int year) {
         assert this.months.contains(month): "Inserted month value is not a valid";
-        if (this.isInt(day)){
-            if (!this.dayLengthIsValid(day)){
-                throw new ParseError("Length of day must be either 1 or 2!");
-            }
-            int dayInt = Integer.parseInt(day);
-            if (dayInt <= 0){
-                throw new ParseError("Day cannot be less than or equal to 0!");
-            }
-            if (this.dayTooLarge(dayInt, month, year)){
-                throw new ParseError("Day is too large for this month and year!");
-            }
-            return this.formatDayToStr(dayInt);
+        if (!isInt(day)){
+            throw new NotIntegerError(NotIntegerError.errorMsg("day", day));
         }
-        else {
-            throw new ParseError("Day is not an integer!");
+        if (!dayLengthIsValid(day)){
+            throw new LengthError("Length of day must be either 1 or 2!");
         }
+        int dayInt = Integer.parseInt(day);
+        if (!dayInRange(dayInt, month, year)) {
+            throw new RangeError("Value for day is not in range, must be above 0 and be within the number of days for the particular month given (including leap years)");
+        }
+        return this.formatDayToStr(dayInt);
+    }
+
+    /**
+     * Finds out if an integer value for day is in range or not
+     *
+     * @param dayInt int for a day
+     * @param month String for the month that this day is int
+     * @param year int for the year that this day is in
+     * @return boolean as described
+     */
+    private boolean dayInRange(int dayInt, String month, int year) {
+        return (0 < dayInt & !dayTooLarge(dayInt, month, year));
     }
 
     /**
@@ -165,7 +258,6 @@ public class DateParser {
      * @return int for the number of days as described
      */
     private int daysInMonth(String month, int year) {
-        // Account for leap years
         assert this.months.contains(month): "Inputted month is not valid!";
         int monthInt = this.months.indexOf(month) + 1;
         YearMonth yearMonth = YearMonth.of(year, monthInt);
@@ -173,66 +265,126 @@ public class DateParser {
     }
 
     /**
+     * Checks a String has any white space contained within it.
+     *
+     * For a year, month or day value to be valid, it cannot have any white space
+     *
+     * @param str String to be checked
+     * @return boolean as described
+     */
+    private boolean containsWhiteSpace(String str){
+        String[] splitStr = str.split("");
+        for (String s : splitStr) {
+            if (s.equals(" ")){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Parses an inputted year string into another String that can be displayed back
      * to a user
      *
      * @param year String for a year
+     * @throws ParseError if the inputted year could not be parsed
      * @return String for year as described
      */
-    private String parseYear(String year) {
-        if (this.isInt(year)) {
-            int yearInt = Integer.parseInt(year);
-            if (this.isValidYy(yearInt)){
-                return Integer.toString(this.yyToYyyy(yearInt));
-            }
-            else if (this.isValidYyyy(yearInt)){
-                return year;
-            }
-            else {
-                throw new ParseError("Year is not in range! Needs to be between 1753 and 3000!");
-            }
+    private String parseYear(String year) throws ParseError {
+        if (year.length() == 4){
+            return parseYyyy(year);
+        }
+        else if (year.length() == 2) {
+            return parseYy(year);
         }
         else {
-            throw new ParseError("Year is not an integer!");
+            throw new LengthError("Inputted year is not in a yyyy or yy format");
         }
+    }
+
+    /**
+     * Attempts to parse a string value for a year into a yyyy format
+     *
+     * @param year String for a year
+     * @throws ParseError if inputted year cannot be parsed into a valid yyyy string
+     * @return yyyy String if one can be created from the inputted year value
+     */
+    private String parseYyyy(String year) throws ParseError {
+        if (!isInt(year)){
+            throw new NotIntegerError(NotIntegerError.errorMsg("Year", year));
+        }
+        if (!(yyyyLengthIsValid(year))){ // Check for leading zeros
+            throw new ParseError("Year is not in a YYYY format");
+        }
+        int yearInt = Integer.parseInt(year);
+        if (!yyyyInRange(yearInt)) {
+            throw new RangeError(RangeError.errorMsg("Year", yearInt, "Needs to be between 1753 and 3000 (inclusive)"));
+        }
+        return year;
+    }
+
+    /**
+     * Checks if the length of a yyyy value is valid or not
+     *
+     * @param year String for an inputted year
+     * @return boolean as descrubed
+     */
+    private boolean yyyyLengthIsValid(String year){
+        assert isInt(year): "Inputted yyyy value must be an integer!";
+        return year.length() == 4 & Integer.toString(Integer.parseInt(year)).length() == 4;
+    }
+
+    /**
+     * Parses a value for yy
+     *
+     * @param year String for an inputted year
+     * @return String of the inputted yy value converted into the appropriate yyyy value
+     * @throws ParseError if the yy value cannot be parsed
+     */
+    private String parseYy(String year) throws ParseError {
+        if (!(year.length() == 2)){
+            throw new ParseError("Year is not in a yy format!");
+        }
+        if (!isInt(year)){
+            throw new NotIntegerError(NotIntegerError.errorMsg("Year", year));
+        }
+        int yearInt = Integer.parseInt(year);
+        if (!yyInRange(yearInt)) {
+            throw new RangeError(RangeError.errorMsg("Year", yearInt, "Needs to be between 0 and 99 (Inclusive)"));
+        }
+        return Integer.toString(yyToYyyy(yearInt));
+    }
+
+    /**
+     * Checks if an inputted integer yyyy int value is within a correct range or not
+     *
+     * @param yyyy int for a yyyy value
+     * @return boolean as described
+     */
+    private boolean yyyyInRange(int yyyy) {
+        return ((1753 <= yyyy & yyyy <= 3000));
+    }
+
+    /**
+     * Checks if an inputted yy is in a valid range or not
+     *
+     * @param yy int for a yy value
+     * @return boolean if inputted yy is valid or not
+     */
+    private boolean yyInRange(int yy) {
+        return (0 <= yy & yy <= 99);
     }
 
     /**
      * Converts a year in yy to yyyy format
      *
-     * Assumes that if a year is given as yy, then it is not in the future. Makes things easy
+     * Assumes that if a year is given as yy, then it is a year in the 21st century
      *
      * @param yy int for year
      * @return int for inputted yy converted to yyyy
      */
-    private int yyToYyyy(int yy){
-        int currYear = LocalDateTime.now().getYear() - 2000; // Should work for next 78 years!, hopefully a new language has come out by then
-        assert this.isValidYy(yy): "Inputted yy is not a valid yy value!";
-        if (currYear < yy & yy <= 99){
-            return 1900 + yy;
-        }
+    private int yyToYyyy(int yy) throws AssertionError{
         return 2000 + yy;
-    }
-
-    /**
-     * Checks if an inputted yy value is valid or not
-     *
-     * @param yy int for a yy value
-     * @return boolean if inputted yy is valid or not
-     */
-    private boolean isValidYy(int yy) {
-        return (0 <= yy & yy <= 99);
-    }
-
-    /**
-     * Checks if an inputted yyyy value is valid or not
-     *
-     * @param yyyy int for a yyyy value
-     *
-     * @return boolean as described
-     */
-    private boolean isValidYyyy(int yyyy) {
-        return ((1753 <= yyyy & yyyy <= 3000));
     }
 
     /**
@@ -260,7 +412,7 @@ public class DateParser {
      */
     private String parseMonth(String month) {
         if (this.isInt(month)) {
-            return this.parseMonthInt(Integer.parseInt(month));
+            return this.parseMonthInt(month);
         }
         return this.parseMonthAbbrev(month);
     }
@@ -287,6 +439,9 @@ public class DateParser {
      * @return A capitalized String
      */
     private String capitalizeString(String str) {
+        if (str.length() == 0){
+            return str;
+        }
         return str.substring(0, 1).toUpperCase(Locale.ROOT) + str.substring(1).toLowerCase(Locale.ROOT);
     }
 
@@ -304,6 +459,12 @@ public class DateParser {
         return false;
     }
 
+    /**
+     * Checks if a string is capitalized or not
+     *
+     * @param str String as described
+     * @return boolean as described
+     */
     private boolean stringIsCapitalized(String str) {
         return (str.equals(this.capitalizeString(str)));
     }
@@ -329,18 +490,36 @@ public class DateParser {
     }
 
     /**
-     * Tries to convert an integer for a month to a 3-letter string abbreviation.
+     * Tries to convert a string for a month that can be interpreted as an integer to a 3-letter string abbreviation.
      *
      * Throws a ParseError if this could not be done
      *
-     * @param month int for month
+     * @param month string for month
+     * @throws AssertionError if the inputted month cannot be interpretted as an integer!
      * @return 3 Letter string abbreviation for a month as described
      */
-    private String parseMonthInt(int month) {
-        if (!this.monthIntInRange(month)) {
-            throw new ParseError("Integer for month is not in range! Needs to be between 1 and 12 (inclusive)");
+    private String parseMonthInt(String month) {
+        assert isInt(month): "Month is not an integer!";
+        int monthInt = Integer.parseInt(month);
+        if (!this.monthIntInRange(monthInt)) {
+            throw new RangeError(RangeError.errorMsg("Month", monthInt, "Needs to be between 1 and 12 (inclusive)"));
         }
-        return this.monthIntToAbbreviation(month);
+        if (!monthIntLengthIsValid(month)) {
+            throw new LengthError("Inputted length of a month integer is not valid!");
+        }
+        return this.monthIntToAbbreviation(monthInt);
+    }
+
+    /**
+     * Checks if a string for a month that can be interpretted as an integer has a valid length
+     *
+     * @param month String for an inputted month
+     * @throws AssertionError if the inputted month cannot be interpreted as an integer
+     * @return boolean as described
+     */
+    private boolean monthIntLengthIsValid(String month) throws AssertionError {
+        assert isInt(month): "Inputted month cannot be interpreted as an integer!";
+        return month.length() == 1 || month.length() == 2;
     }
     /**
      * Converts an inputted int for a month to a 3-letter string abbreviation
