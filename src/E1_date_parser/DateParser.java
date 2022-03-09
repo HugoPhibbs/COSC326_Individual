@@ -15,6 +15,8 @@ import java.util.*;
  */
 public class DateParser {
 
+    // CLASS ATTRIBUTES //
+
     /** ArrayList of Strings containing 3 letter abbreviations for each month of the
      * Credit to https://stackoverflow.com/questions/1005073/initialization-of-an-arraylist-in-one-line for this
      */
@@ -26,6 +28,24 @@ public class DateParser {
      */
     private final ArrayList<String> separators = new ArrayList<String>(Arrays.asList("/", "-", " "));
 
+    // METHODS //
+
+    // Main parse methods //
+
+    public static void main(String args[]) {
+        DateParser.start();
+    }
+
+    /**
+     * Starts the date parser program
+     */
+    public static void start() {
+        System.out.println("Welcome to date parser, please enter a date!");
+        Scanner scanner = new Scanner(System.in);
+        String date = scanner.nextLine();
+        DateParser dateParser = new DateParser();
+        System.out.println(dateParser.parseDate(date));
+    }
 
     /**
      * Parses an inputted date from a user
@@ -50,7 +70,7 @@ public class DateParser {
      *
      * Does the actual parsing part
      *
-     * Extracted into its own method for easy testing, so errors are thrown up to tests
+     * Extracted into its own method for easy testing, so errors are thrown up to the test level
      *
      * @param date String for a date entered
      * @throws ParseError if a date cannot be parsed, useful for testing
@@ -66,7 +86,6 @@ public class DateParser {
         return String.format("%s %s %s", day, month, year);
     }
 
-
     /**
      * Performs checks on an inputted date value before any actual parsing can happen
      *
@@ -79,15 +98,7 @@ public class DateParser {
         }
     }
 
-    /**
-     * Finds if a split up date's length is valid or not.
-     *
-     * @param splitDate array of a split date
-     * @return boolean as described
-     */
-    private boolean splitDateLengthIsValid(String[] splitDate) {
-        return splitDate.length == 3;
-    }
+    // Splitting Dates //
 
     /**
      * Splits a date according to a separator, and returns a HashMap containing the parts of the date
@@ -96,21 +107,6 @@ public class DateParser {
      * @return HashMap containing the parts of the date, keys being parts of the date
      */
     private HashMap<String, String> splitDate(String date) {
-        /*
-        Should follow scheme of day-seperator-month-year.
-
-        So what should be happening is that we just split the date according to it's separator.
-
-        if it's length 3, it may follow a valid format, otherwise it doesn't.
-
-        Transfer the elements in the split date into respective day, month and year values, if they can be parsed in the
-        first place!
-
-        Please note that splitting a string that has a seperator twice in a row results in an empty string,
-
-        So this is accounted for anyways.
-
-         */
         ArrayList<String[]> splitDates = new ArrayList<String[]>();
         for (String sep : separators) {
             String[] splitDate = date.split(sep);
@@ -124,6 +120,16 @@ public class DateParser {
         HashMap<String, String> dateMap = dateArrayToDict(splitDates.get(0));
         checkWhiteSpace(dateMap);
         return dateMap;
+    }
+
+    /**
+     * Finds if a split up date's length is valid or not.
+     *
+     * @param splitDate array of a split date
+     * @return boolean as described
+     */
+    private boolean splitDateLengthIsValid(String[] splitDate) {
+        return splitDate.length == 3;
     }
 
     /**
@@ -141,6 +147,21 @@ public class DateParser {
             }
         }
         return count == 2;
+    }
+    /***
+     * Converts a date array to a date dictionary
+     *
+     * Helper method for splitDate(date)
+     *
+     * @param dateArray String array containing the parts of the date.
+     * @return HashMap for the parts of the date
+     */
+    private HashMap<String, String> dateArrayToDict(String[] dateArray) {
+        HashMap<String, String> dateDict = new HashMap<String, String>();
+        dateDict.put("Day", dateArray[0]);
+        dateDict.put("Month", dateArray[1]);
+        dateDict.put("Year", dateArray[2]);
+        return dateDict;
     }
 
     /**
@@ -160,21 +181,7 @@ public class DateParser {
         }
     }
 
-    /***
-     * Converts a date array to a date dictionary
-     *
-     * Helper method for splitDate(date)
-     *
-     * @param dateArray String array containing the parts of the date.
-     * @return HashMap for the parts of the date
-     */
-    private HashMap<String, String> dateArrayToDict(String[] dateArray) {
-        HashMap<String, String> dateDict = new HashMap<String, String>();
-        dateDict.put("Day", dateArray[0]);
-        dateDict.put("Month", dateArray[1]);
-        dateDict.put("Year", dateArray[2]);
-        return dateDict;
-    }
+    // Parsing Days //
 
     /**
      * Parses a day value into a dd format. Checking that is valid while doing so
@@ -188,6 +195,23 @@ public class DateParser {
      */
     private String parseDay(String day, String month, int year) {
         assert this.months.contains(month): "Inserted month value is not a valid";
+        int dayInt = parseDayChecks(day, month, year);
+        return this.formatDayToStr(dayInt);
+    }
+
+    /**
+     * Does check on an inputted day value.
+     *
+     * Helper method for parseDay(String, String, int). Not meant to be called outside this method.
+     *
+     * Doesn't return anything, simply raises an error of a day doesn't past checks
+     *
+     * @param day String for a day
+     * @param month String for a month. A 3 letter capitalized abbreviation
+     * @return int for a day if it has passed checks
+     * @throws ParseError if the inputted day value is not valid
+     */
+    private int parseDayChecks(String day, String month, int year) throws ParseError {
         if (!isInt(day)){
             throw new NotIntegerError(NotIntegerError.errorMsg("day", day));
         }
@@ -198,7 +222,7 @@ public class DateParser {
         if (!dayInRange(dayInt, month, year)) {
             throw new RangeError("Value for day is not in range, must be above 0 and be within the number of days for the particular month given (including leap years)");
         }
-        return this.formatDayToStr(dayInt);
+        return dayInt;
     }
 
     /**
@@ -264,23 +288,104 @@ public class DateParser {
         return yearMonth.lengthOfMonth();
     }
 
+    // Parsing Months //
+
     /**
-     * Checks a String has any white space contained within it.
+     * Parses a string for a month into a three letter abbreviation.
      *
-     * For a year, month or day value to be valid, it cannot have any white space
+     * @param month String for month in a year that was has been inputted by a user
+     * @return String for the month put into a 3 letter format
+     */
+    private String parseMonth(String month) {
+        if (this.isInt(month)) {
+            return this.parseMonthInt(month);
+        }
+        return this.parseMonthAbbrev(month);
+    }
+
+    /**
+     *  Parses a String abbreviation for a Month to a form that is usable form
      *
-     * @param str String to be checked
+     *  Throws a ParseError if this cannot be done
+     *
+     * @param monthAbbrev String for the abbreviation of a month
+     * @return String for the abbreviation of the month in a usable form
+     */
+    private String parseMonthAbbrev(String monthAbbrev) {
+        if (!this.monthAbbreviationIsValid(monthAbbrev)) {
+            throw new ParseError("Abbreviated month is not valid! Must either be a length of 3 with uniform case or have it's first letter capitalized!");
+        }
+        return this.capitalizeString(monthAbbrev);
+    }
+
+    /**
+     * Finds out if the abbreviation for a month is invalid or not\
+     *
+     * @param monthAbbreviation String for the abbreviation of a month, may be valid or not
      * @return boolean as described
      */
-    private boolean containsWhiteSpace(String str){
-        String[] splitStr = str.split("");
-        for (String s : splitStr) {
-            if (s.equals(" ")){
-                return true;
-            }
+    private boolean monthAbbreviationIsValid(String monthAbbreviation) {
+        if (this.stringIsUpperCase(monthAbbreviation) || this.stringIsLowerCase(monthAbbreviation) || this.stringIsCapitalized(monthAbbreviation)) {
+            monthAbbreviation = this.capitalizeString(monthAbbreviation);
+            return this.months.contains(monthAbbreviation);
         }
         return false;
     }
+
+    /**
+     * Tries to convert a string for a month that can be interpreted as an integer to a 3-letter string abbreviation.
+     *
+     * Throws a ParseError if this could not be done
+     *
+     * @param month string for month
+     * @throws AssertionError if the inputted month cannot be interpretted as an integer!
+     * @return 3 Letter string abbreviation for a month as described
+     */
+    private String parseMonthInt(String month) {
+        assert isInt(month): "Month is not an integer!";
+        int monthInt = Integer.parseInt(month);
+        if (!this.monthIntInRange(monthInt)) {
+            throw new RangeError(RangeError.errorMsg("Month", monthInt, "Needs to be between 1 and 12 (inclusive)"));
+        }
+        if (!monthIntLengthIsValid(month)) {
+            throw new LengthError("Inputted length of a month integer is not valid!");
+        }
+        return this.monthIntToAbbreviation(monthInt);
+    }
+
+    /**
+     * Checks if a string for a month that can be interprtted as an integer has a valid length
+     *
+     * @param month String for an inputted month
+     * @throws AssertionError if the inputted month cannot be interpreted as an integer
+     * @return boolean as described
+     */
+    private boolean monthIntLengthIsValid(String month) throws AssertionError {
+        assert isInt(month): "Inputted month cannot be interpreted as an integer!";
+        return month.length() == 1 || month.length() == 2;
+    }
+    /**
+     * Converts an inputted int for a month to a 3-letter string abbreviation
+     *
+     * @param month int for cardinal value of month
+     * @return String as described
+     */
+    private String monthIntToAbbreviation(int month) {
+        assert this.monthIntInRange(month): "Month is not in range!";
+        return this.months.get(month-1);
+    }
+
+    /**
+     * Finds if an integer value for a month is valid or not
+     *
+     * @param month int for month
+     * @return boolean as described
+     */
+    private boolean monthIntInRange(int month) {
+        return (1 <= month & month <= 12);
+    }
+
+    // Parsing Years //
 
     /**
      * Parses an inputted year string into another String that can be displayed back
@@ -324,10 +429,20 @@ public class DateParser {
     }
 
     /**
+     * Checks if an inputted integer yyyy int value is within a correct range or not
+     *
+     * @param yyyy int for a yyyy value
+     * @return boolean as described
+     */
+    private boolean yyyyInRange(int yyyy) {
+        return ((1753 <= yyyy & yyyy <= 3000));
+    }
+
+    /**
      * Checks if the length of a yyyy value is valid or not
      *
      * @param year String for an inputted year
-     * @return boolean as descrubed
+     * @return boolean as described
      */
     private boolean yyyyLengthIsValid(String year){
         assert isInt(year): "Inputted yyyy value must be an integer!";
@@ -356,16 +471,6 @@ public class DateParser {
     }
 
     /**
-     * Checks if an inputted integer yyyy int value is within a correct range or not
-     *
-     * @param yyyy int for a yyyy value
-     * @return boolean as described
-     */
-    private boolean yyyyInRange(int yyyy) {
-        return ((1753 <= yyyy & yyyy <= 3000));
-    }
-
-    /**
      * Checks if an inputted yy is in a valid range or not
      *
      * @param yy int for a yy value
@@ -387,49 +492,24 @@ public class DateParser {
         return 2000 + yy;
     }
 
+    // Utility methods //
+
     /**
-     * Checks if an inputted string is an integer or not
+     * Checks a String has any white space contained within it.
+     *
+     * For a year, month or day value to be valid, it cannot have any white space
      *
      * @param str String to be checked
      * @return boolean as described
      */
-    private boolean isInt(String str) {
-        float num;
-        try {
-            num = Float.parseFloat(str);
+    private boolean containsWhiteSpace(String str){
+        String[] splitStr = str.split("");
+        for (String s : splitStr) {
+            if (s.equals(" ")){
+                return true;
+            }
         }
-        catch (NumberFormatException nfe) {
-            return false;
-        }
-        return (num == (int) num);
-    }
-
-    /**
-     * Parses a string for a month into a three letter abbreviation.
-     *
-     * @param month String for month in a year that was has been inputted by a user
-     * @return String for the month put into a 3 letter format
-     */
-    private String parseMonth(String month) {
-        if (this.isInt(month)) {
-            return this.parseMonthInt(month);
-        }
-        return this.parseMonthAbbrev(month);
-    }
-
-    /**
-     *  Parses a String abbreviation for a Month to a form that is usable form
-     *
-     *  Throws a ParseError if this cannot be done
-     *
-     * @param monthAbbrev String for the abbreviation of a month
-     * @return String for the abbreviation of the month in a usable form
-     */
-    private String parseMonthAbbrev(String monthAbbrev) {
-        if (!this.monthAbbreviationIsValid(monthAbbrev)) {
-            throw new ParseError("Abbreviated month is not valid! Must either be a length of 3 with uniform case or have it's first letter capitalized!");
-        }
-        return this.capitalizeString(monthAbbrev);
+        return false;
     }
 
     /**
@@ -446,21 +526,9 @@ public class DateParser {
     }
 
     /**
-     * Finds out if the abbreviation for a month is invalid or not\
-     *
-     * @param monthAbbreviation String for the abbreviation of a month, may be valid or not
-     * @return boolean as described
-     */
-    private boolean monthAbbreviationIsValid(String monthAbbreviation) {
-        if (this.stringIsUpperCase(monthAbbreviation) || this.stringIsLowerCase(monthAbbreviation) || this.stringIsCapitalized(monthAbbreviation)) {
-            monthAbbreviation = this.capitalizeString(monthAbbreviation);
-            return this.months.contains(monthAbbreviation);
-        }
-        return false;
-    }
-
-    /**
      * Checks if a string is capitalized or not
+     *
+     * Check capitalizeString(String) for my definition for a capitalized String
      *
      * @param str String as described
      * @return boolean as described
@@ -490,69 +558,19 @@ public class DateParser {
     }
 
     /**
-     * Tries to convert a string for a month that can be interpreted as an integer to a 3-letter string abbreviation.
+     * Checks if an inputted string is an integer or not
      *
-     * Throws a ParseError if this could not be done
-     *
-     * @param month string for month
-     * @throws AssertionError if the inputted month cannot be interpretted as an integer!
-     * @return 3 Letter string abbreviation for a month as described
-     */
-    private String parseMonthInt(String month) {
-        assert isInt(month): "Month is not an integer!";
-        int monthInt = Integer.parseInt(month);
-        if (!this.monthIntInRange(monthInt)) {
-            throw new RangeError(RangeError.errorMsg("Month", monthInt, "Needs to be between 1 and 12 (inclusive)"));
-        }
-        if (!monthIntLengthIsValid(month)) {
-            throw new LengthError("Inputted length of a month integer is not valid!");
-        }
-        return this.monthIntToAbbreviation(monthInt);
-    }
-
-    /**
-     * Checks if a string for a month that can be interpretted as an integer has a valid length
-     *
-     * @param month String for an inputted month
-     * @throws AssertionError if the inputted month cannot be interpreted as an integer
+     * @param str String to be checked
      * @return boolean as described
      */
-    private boolean monthIntLengthIsValid(String month) throws AssertionError {
-        assert isInt(month): "Inputted month cannot be interpreted as an integer!";
-        return month.length() == 1 || month.length() == 2;
-    }
-    /**
-     * Converts an inputted int for a month to a 3-letter string abbreviation
-     *
-     * @param month int for cardinal value of month
-     * @return String as described
-     */
-    private String monthIntToAbbreviation(int month) {
-        assert this.monthIntInRange(month): "Month is not in range!";
-        return this.months.get(month-1);
-    }
-    /**
-     * Finds if an integer value for a month is valid or not
-     *
-     * @param month int for month
-     * @return boolean as described
-     */
-    private boolean monthIntInRange(int month) {
-        return (1 <= month & month <= 12);
-    }
-
-    /**
-     * Starts the date parser program
-     */
-    public static void start() {
-        System.out.println("Welcome to date parser, please enter a date!");
-        Scanner scanner = new Scanner(System.in);
-        String date = scanner.nextLine();
-        DateParser dateParser = new DateParser();
-        System.out.println(dateParser.parseDate(date));
-    }
-
-    public static void main(String args[]) {
-        DateParser.start();
+    private boolean isInt(String str) {
+        float num;
+        try {
+            num = Float.parseFloat(str);
+        }
+        catch (NumberFormatException nfe) {
+            return false;
+        }
+        return (num == (int) num);
     }
 }
