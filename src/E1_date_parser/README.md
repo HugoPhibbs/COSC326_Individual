@@ -32,7 +32,7 @@ java DateParser
 ## Using the application
 - After starting the application, either with jar or traditional method. Follow prompts displayed.  
 
-# Tests
+## Tests
 - I put all my tests into a JUnit test class that I have included bellow. And in the code directory with other source code
 - This uses JUnit 5.7
 
