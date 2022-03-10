@@ -4,7 +4,7 @@
 - This is a command line program that parses a user inputted date and outputs this into a standard format. 
 - Full program specs can be seen in the date_brief.pdf
 
-# How to Use
+## How to Use
 - **IMPORTANT**: Instructions bellow are for running the program from the extracted zip folder. 
 - Download the zip folder above, and extract it. This is the top level submission directory for the next steps
 
