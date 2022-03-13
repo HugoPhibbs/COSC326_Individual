@@ -27,7 +27,7 @@ public class KochSnowflake {
      * @return snow flake size entered by user
      */
     private int getOrder() {
-        String inputMsg = "Enter which order Koch Snowflake you would like:";
+        String inputMsg = "Enter which order Koch Snowflake you would like\nThen press enter (may take a while):";
         System.out.println(inputMsg);
         Scanner scanner = new Scanner(System.in);
         String order = scanner.nextLine();
@@ -37,6 +37,7 @@ public class KochSnowflake {
         }
         return Integer.parseInt(order);
     }
+
 
     /**
      * Finds the points for an order 1 snowflake.
@@ -51,9 +52,9 @@ public class KochSnowflake {
      */
     private ArrayList<Line2D.Double> order1Snowflake(double sideLength, Point2D.Double center){
         double height = sideLength * Math.sin(Math.toRadians(60));
-        Point2D a = new Point2D.Double(center.getX()-sideLength/2, center.getY()-height/2);
-        Point2D b = new Point2D.Double(center.getX(), center.getY() + height/2);
-        Point2D c = new Point2D.Double(center.getX() + sideLength/2, center.getY()-height/2);
+        Point2D b = new Point2D.Double(center.getX()-sideLength/2, center.getY()+height/2);
+        Point2D a = new Point2D.Double(center.getX(), center.getY() - height/2);
+        Point2D c = new Point2D.Double(center.getX() + sideLength/2, center.getY()+height/2);
         return new ArrayList<Line2D.Double>(Arrays.asList(new Line2D.Double(a, b), new Line2D.Double(b, c), new Line2D.Double(c, a)));
     }
 
@@ -162,7 +163,10 @@ public class KochSnowflake {
      * @param order String for size entered
      * @return boolean as described
      */
-    private boolean orderIsValid(String order) {
+    public boolean orderIsValid(String order) {
+        if (order == null) {
+            return false;
+        }
         if (isInt(order)) {
             return Integer.parseInt(order) > 0;
         }
@@ -190,7 +194,9 @@ public class KochSnowflake {
      */
     private void start() {
         int reqOrder = getOrder();
-        ArrayList<Line2D.Double> sides = findSidesRec(1, reqOrder, order1Snowflake(500, new Point2D.Double(375, 425)));
+        ArrayList<Line2D.Double> sides = findSidesRec(1, reqOrder, order1Snowflake(500, new Point2D.Double(375, 300)));
         new KochDrawPanel(sides, reqOrder);
+        System.out.println("Please see the newly created JFrame for the snowflake!");
     }
+
 }
