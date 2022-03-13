@@ -1,10 +1,5 @@
 package E1_date_parser;
 
-import org.w3c.dom.ranges.Range;
-
-import java.lang.reflect.Array;
-import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 
@@ -63,12 +58,7 @@ public class DateParser {
      * @return ArrayList containing Strings for the dates that a user has entered
      */
     private ArrayList<String> getInput() {
-        System.out.println("""
-                Welcome to date parser\s
-                
-                Instructions:
-                Enter one date per line\s
-                Press enter on an empty line to submit""");
+        System.out.println("Welcome to date parser\n\nInstructions:\nEnter one date per line\nPress enter on an empty line to submit");
         Scanner scanner = new Scanner(System.in);
         ArrayList<String> dates = new ArrayList<String>();
         String date = scanner.nextLine();
