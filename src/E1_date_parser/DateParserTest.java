@@ -2,7 +2,8 @@ package E1_date_parser;
 
 import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DateParserTest {
 
@@ -19,26 +20,49 @@ public class DateParserTest {
     @Test
     public void testIrrelevantInput() {
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper(null));
-        assertEquals(" - INVALID: Date does not follow a valid separator scheme!", dateParser.parseDate(""));
-        assertEquals("-1 - INVALID: Date does not follow a valid separator scheme!", dateParser.parseDate("-1"));
+        assertThrows(ParseError.class, () -> dateParser.parseDateHelper(""));
+        assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("-1"));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper("Hugo"));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper("Hugo Thomas Phibbs"));
     }
 
     @Test
+    public void testMultipleSeparatorsTypes() {
+        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper(" 30/12/2001 "));
+        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper(" 30/12/2001    "));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("30/ 12/2001"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("30/12 /2001"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("30/12/ 2001"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("30/12/2 01"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("30/1 2/2001"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("11 - 11 - 11"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("-/2 3 97"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("2-3 97"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("2-3/97"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("2 3/97"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("2-3/97/"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("11-11- 11"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("4/-1/1886"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("-4/1/1886"));
+    }
+
+    @Test
+    public void testSeparatorCount() {
+        assertThrows(SeparatorCountError.class, () -> dateParser.parseDateHelper("2 3  97"));
+        assertThrows(SeparatorCountError.class, () -> dateParser.parseDateHelper("2/3//96"));
+    }
+
+
+    @Test
     public void testWhiteSpace() {
+        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper("2 3 97 "));
+        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper(" 2 3 97"));
         assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper(" 30/12/2001 "));
         assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper(" 30/12/2001    "));
         assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper("30/12/2001 "));
         assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper(" 30/12/2001"));
-        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper("30/ 12/2001"));
-        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper("30/12 /2001"));
-        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper("30/12/ 2001"));
-        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper("30/12/2 01"));
-        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper("30/1 2/2001"));
-        assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("2 3 97 "));
-        assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper(" 2 3 97"));
-        assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("2 3  97"));
+        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper("2 3 97 "));
+        assertThrows(WhiteSpaceError.class, () -> dateParser.parseDateHelper(" 2 3 97"));
     }
 
     @Test
@@ -66,10 +90,20 @@ public class DateParserTest {
         assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("/23/22//"));
         assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("/23/22/"));
         assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("23/22"));
-        assertThrows(RangeError.class, () -> dateParser.parseDateHelper("/23/22"));
+        assertThrows(ArgumentCountError.class, () -> dateParser.parseDateHelper("/23/22"));
         assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("--/23/22"));
         assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("30/12-2001"));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper("20   2001"));
+
+        assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("11 11 11 11"));
+        assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("11 11"));
+    }
+
+    @Test
+    public void testArgumentCount() {
+        assertThrows(ArgumentCountError.class, () -> dateParser.parseDateHelper("11//11"));
+        assertThrows(ArgumentCountError.class, () -> dateParser.parseDateHelper("/12/11"));
+        assertThrows(ArgumentCountError.class, () -> dateParser.parseDateHelper("12/11/"));
     }
 
     @Test
@@ -84,8 +118,6 @@ public class DateParserTest {
         assertEquals("09 Dec 2001", dateParser.parseDate("9/12/2001"));
         assertEquals("09 Dec 2001", dateParser.parseDate("09/12/2001"));
         assertThrows(RangeError.class, () -> dateParser.parseDateHelper("0/2/2001"));
-        assertThrows(RangeError.class, () -> dateParser.parseDateHelper("-1/2/2001"));
-        assertThrows(ParseError.class, () -> dateParser.parseDateHelper("-100/2/2001"));
         assertEquals("01 May 2002", dateParser.parseDate("1/5/2002"));
     }
 
@@ -124,12 +156,14 @@ public class DateParserTest {
     public void testYears() {
         assertThrows(LengthError.class, () -> dateParser.parseDateHelper("01 01 001"));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper("12/1/109"));
-        assertThrows(ParseError.class, () -> dateParser.parseDateHelper("01 01 0001"));
-        assertThrows(ParseError.class, () -> dateParser.parseDateHelper("01 01 0840"));
-        assertThrows(ParseError.class, () -> dateParser.parseDateHelper("01 01 0099"));
         assertThrows(LengthError.class, () -> dateParser.parseDateHelper("01 01 009900"));
-        assertThrows(ParseError.class, () -> dateParser.parseDateHelper("01 01 0099"));
         assertThrows(LengthError.class, () -> dateParser.parseDateHelper("01 01 9"));
+
+        assertThrows(RangeError.class, () -> dateParser.parseDateHelper("01 01 0099"));
+        assertThrows(RangeError.class, () -> dateParser.parseDateHelper("01 01 0001"));
+        assertThrows(RangeError.class, () -> dateParser.parseDateHelper("01 01 0840"));
+        assertThrows(RangeError.class, () -> dateParser.parseDateHelper("01 01 0099"));
+        assertThrows(RangeError.class, () -> dateParser.parseDateHelper("1 1 0011"));
     }
 
     @Test
@@ -173,6 +207,5 @@ public class DateParserTest {
         assertThrows(RangeError.class, () -> dateParser.parseDateHelper("4/13/1886"));
         assertThrows(RangeError.class, () -> dateParser.parseDateHelper("4/00/1886"));
         assertThrows(RangeError.class, () -> dateParser.parseDateHelper("4/0/1886"));
-        assertThrows(RangeError.class, () -> dateParser.parseDateHelper("4/-1/1886"));
     }
 }

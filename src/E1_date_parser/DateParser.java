@@ -13,7 +13,7 @@ public class DateParser {
 
     // CLASS ATTRIBUTES //
 
-    /** ArrayList of Strings containing 3 letter abbreviations for each month of the
+    /** ArrayList of Strings containing 3 letter abbreviations for each month of the year
      * Credit to https://stackoverflow.com/questions/1005073/initialization-of-an-arraylist-in-one-line for this
      */
     private final ArrayList<String> months = new ArrayList<String>(
@@ -118,6 +118,10 @@ public class DateParser {
         if (date == null) {
             throw new ParseError("Date cannot be null!");
         }
+        if (date.equals("")) {
+            throw new ParseError("Date cannot be an empty string");
+        }
+        checkWhiteSpace(date);
     }
 
     // Splitting Dates //
@@ -129,60 +133,123 @@ public class DateParser {
      * @return HashMap containing the parts of the date, keys being parts of the date
      */
     private HashMap<String, String> splitDate(String date) {
-        ArrayList<String[]> splitDates = new ArrayList<String[]>();
-        for (String sep : separators) {
-            String[] splitDate = date.split(sep);
-            if (this.splitDateLengthIsValid(splitDate) & hasCorrectNumSeparators(date, sep)) {
-                splitDates.add(splitDate);
-            }
-        }
-        if (splitDates.size() != 1){
-            throw new SeparatorError("Date does not follow a valid separator scheme!");
-        }
-        HashMap<String, String> dateMap = dateArrayToDict(splitDates.get(0));
+        ArrayList<String> splitDateRes = checkTypesOfSeparators(date);
+        ArrayList<String> splitDate = new ArrayList<>(splitDateRes.subList(0, splitDateRes.size()-1));
+        String sep = splitDateRes.get(splitDateRes.size() - 1);
+        checkCorrectNumSeparators(date, sep);
+        checkCorrectNumArguments(splitDate);
+        HashMap<String, String> dateMap = dateArrayListToDict(splitDate);
         checkWhiteSpace(dateMap);
         return dateMap;
     }
 
     /**
-     * Finds if a split up date's length is valid or not.
+     * Checks that a date uses only one type of Separator
      *
-     * @param splitDate array of a split date
-     * @return boolean as described
+     * NB: For any Date that contains white space: Any white space character in a date will be treated as a separator.
+     * Thus, whitespace in between arguments in a date may not trigger a WhiteSpaceError, But instead a SeparatorTypesError
+     *
+     * // TODO does this method work alright with whitespace?
+     *
+     * @param date String for an inputted date
+     * @throws SeparatorTypesError if the date doesn't use only one type of separator
+     * @return ArrayList containing Strings, the first elements being the date split by a separator, and the last element being the separator that
+     * splits this date.
      */
-    private boolean splitDateLengthIsValid(String[] splitDate) {
-        return splitDate.length == 3;
+    private ArrayList<String> checkTypesOfSeparators(String date) throws SeparatorTypesError {
+        ArrayList<ArrayList<String>> splitDates = new ArrayList<>();
+        for (String sep : separators) {
+            ArrayList<String> splitDate = new ArrayList<>(Arrays.asList(date.split(sep)));
+            if (splitDate.size() > 1) {
+                splitDate.add(sep);
+                splitDates.add(splitDate);
+            }
+        }
+        if (splitDates.size() != 1) {
+            throw new SeparatorTypesError("Inputted date must use only one type of separator");
+        }
+        return splitDates.get(0);
     }
 
     /**
-     * Checks if a date has the correct number of separators contained within it
+     * Checks if an inputted date has any trailing or leading white space
      *
-     * @param sep String for the separator to be counted
-     * @param date String for an inputted date
-     * @return boolean as described
+     * NB: Not to be confused with checkWhiteSpace(HashMap), this checks for white space within individual components
+     * of the date.
+     *
+     * This method is a compromised solution on a limitation of my algorithm, that is any internal white space for a date will be
+     * treated as a Separator (assuming that this method is called before checkTypesOfSeparators(String)).
+     *
+     *
+     * @throws WhiteSpaceError if the inputted date has any trailing or leading white space
+     * @param date String for an inputted date from a user
      */
-    private boolean hasCorrectNumSeparators(String date, String sep) {
-        int count = 0;
-        for (int i =0; i < date.length(); i++) {
-            if (Character.toString(date.charAt(i)).equals(sep)){
-                count ++;
+    private void checkWhiteSpace(String date) {
+        assert date != null & !Objects.equals(date, "") : "Inputted date cannot be empty or null!";
+        if (date.length() >= 1){
+            if (date.charAt(0) == ' ' || date.charAt(date.length() - 1) == ' ') {
+                throw new WhiteSpaceError("Date cannot contain leading or trailing whitespace!");
             }
         }
-        return count == 2;
     }
+
+    /**
+     * Checks that a String contains the correct number of occurrences for a given separator
+     *
+     * @throws  SeparatorCountError if the number of separators used in this date is invalid
+     *  AssertionError if the date cannot be split according to the inputted separator.
+     * @param date String for an inputted date from a user
+     * @param sep String for the separator that splits this date
+     *
+     */
+    private void checkCorrectNumSeparators(String date, String sep) throws SeparatorCountError, AssertionError{
+        long count = date.chars().filter(c -> c == sep.charAt(0)).count();
+        assert count > 0: "Date cannot be split according to this separator!";
+        if (count > 2) {
+            throw new SeparatorCountError("Date has too many occurrences of it's separator");
+        }
+        else if (count < 2) {
+            throw new SeparatorCountError("Date has too few occurrences of it's separator");
+        }
+    }
+
+    /**
+     * Checks that a date contains the correct number of arguments
+     *
+     * @throws ArgumentCountError if the date does not contain the correct number of arguments\
+     *
+     *
+     * @param splitDate ArrayList containing Strings for a date split according to its separator. Dates may contain whitespace.
+     */
+    private void checkCorrectNumArguments(ArrayList<String> splitDate) throws ArgumentCountError {
+        // TODO Account for empty arguments eg "11//12:
+        int argumentCount = 0;
+        for (String part : splitDate){
+            if (!part.equals("")){
+                argumentCount ++;
+            }
+        }
+        if (argumentCount < 3){
+            throw new ArgumentCountError("Date has too few arguments, please note empty characters are not treated as arguments");
+        }
+        else if (argumentCount> 3) {
+            throw new ArgumentCountError("Date has too many arguments, please note empty characters are not treated as arguments");
+        }
+    }
+
     /***
      * Converts a date array to a date dictionary
      *
      * Helper method for splitDate(date)
      *
-     * @param dateArray String array containing the parts of the date.
+     * @param dateArrayList ArrayList containing Strings for the parts of the date.
      * @return HashMap for the parts of the date
      */
-    private HashMap<String, String> dateArrayToDict(String[] dateArray) {
+    private HashMap<String, String> dateArrayListToDict(ArrayList<String> dateArrayList) {
         HashMap<String, String> dateDict = new HashMap<String, String>();
-        dateDict.put("Day", dateArray[0]);
-        dateDict.put("Month", dateArray[1]);
-        dateDict.put("Year", dateArray[2]);
+        dateDict.put("Day", dateArrayList.get(0));
+        dateDict.put("Month", dateArrayList.get(1));
+        dateDict.put("Year", dateArrayList.get(2));
         return dateDict;
     }
 
@@ -195,11 +262,15 @@ public class DateParser {
      * @param dateMap HashMap<String, String> containing parts of a date
      */
     private void checkWhiteSpace(HashMap<String, String> dateMap){
+        ArrayList<String> valuesContainingWhiteSpace = new ArrayList<>();
         for (Map.Entry<String, String> valuePair : dateMap.entrySet()) {
             String dateKey = valuePair.getKey();
             if (containsWhiteSpace(dateMap.get(dateKey))) {
-                throw new WhiteSpaceError(WhiteSpaceError.errorMessage(dateKey));
+                valuesContainingWhiteSpace.add(dateKey);
             }
+        }
+        if (valuesContainingWhiteSpace.size() > 0) {
+            throw new WhiteSpaceError(WhiteSpaceError.errorMessage(valuesContainingWhiteSpace));
         }
     }
 
@@ -440,7 +511,7 @@ public class DateParser {
         if (!isInt(year)){
             throw new NotIntegerError(NotIntegerError.errorMsg("Year", year));
         }
-        if (!(yyyyLengthIsValid(year))){ // Check for leading zeros
+        if (!(yyyyLengthIsValid(year))){
             throw new ParseError("Year is not in a YYYY format");
         }
         int yearInt = Integer.parseInt(year);
@@ -468,7 +539,7 @@ public class DateParser {
      */
     private boolean yyyyLengthIsValid(String year){
         assert isInt(year): "Inputted yyyy value must be an integer!";
-        return year.length() == 4 & Integer.toString(Integer.parseInt(year)).length() == 4;
+        return year.length() == 4;
     }
 
     /**
