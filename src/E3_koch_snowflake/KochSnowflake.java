@@ -58,13 +58,22 @@ public class KochSnowflake {
      * @return boolean as described
      */
     public static boolean orderIsValid(String order) {
-        if (order == null) {
+        if (order == null || order.equals("")) {
             return false;
         }
         if (isInt(order)) {
             return Integer.parseInt(order) > 0;
         }
         return false;
+    }
+
+    /**
+     * Returns a String describing the requirements of a valid inputted order from a user
+     *
+     * @return String as described
+     */
+    public static String orderIsValidRequirements() {
+        return "Order must be a positive non-zero integer";
     }
 
     /**
