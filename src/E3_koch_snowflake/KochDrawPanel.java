@@ -14,11 +14,9 @@ import java.awt.geom.Point2D;
 public class KochDrawPanel extends JPanel {
 
     /**
-     * Previous size of the JFrame that was used to store this JPanel
-     *
-     * This is the size of the JFrame when it was last resized
+     * Previous size of this JPanel before it was last resized
      */
-    Dimension previousJFrameSize;
+    Dimension prevSize;
 
     /**
      * JFrame that stores this JPanel
@@ -26,40 +24,63 @@ public class KochDrawPanel extends JPanel {
     JFrame frame;
 
     /**
-     * int for the order of Koch snowflake to be drawn
-     */
-    int order;
-
-    /**
      * The KochSnowflake that is being drawn by this class
      */
-    KochSnowflake snowflake;
+    KochSnowflake snowflake = null;
 
     /**
-     * Constructor for a Koch Snow Flake drawing panel
+     * Constructor for a KochDrawPanel
      *
-     * @param jFrameDims Dimension object for the dimensions of the JFrame used to store this JPanel
-     * @param order int for the order of snowflake being created
-     * @param snowflake KochSnowflake object that is to be drawn
      */
-    KochDrawPanel(KochSnowflake snowflake, int order, Dimension jFrameDims) {
-        this.snowflake = snowflake;
-        this.order = order;
-        this.previousJFrameSize = jFrameDims;
-        initFrame(jFrameDims);
+    KochDrawPanel() {
+        init();
     }
 
     /**
-     * Initializes and fills the JFrame that is used to hold this JPanel
+     * Initializes this Panel.
      *
-     * @param jFrameDims Dimension object for dimensions of the JFrame to be created
+     * Does common actions that are the same for no matter what constructor is used
      */
-    private void initFrame(Dimension jFrameDims) {
-        frame = new JFrame(String.format("Koch Snowflake of order %s", order));
-        frame.setSize(jFrameDims.width, jFrameDims.height);
-        frame.setVisible(true);
-        frame.getContentPane().add(this);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    private void init() {
+        resetPrevSize();
+    }
+
+    /**
+     * Adds a new snowflake onto this JPanel
+     *
+     * @param order int for which order snowflake should be drawn
+     */
+    public void addNewSnowflake(int order) {
+        snowflake = new KochSnowflake(order, sideLength(), center());
+        paint(getGraphics()); // TODO this line may cause issues!
+    }
+
+    /**
+     * Determines the side of a snowflake that should be drawn on this JPanel
+     *
+     * This is simply a proportion of the minimum side length
+     *
+     * @return double for side length as described
+     */
+    private double sideLength() {
+        Dimension dims = getSize();
+        return (Math.min(dims.getHeight(), dims.getWidth()) * 0.7);
+    }
+
+    /**
+     * Resets the previous size of this JPanel to the current size of this JPanel
+     */
+    public void resetPrevSize() {
+        prevSize = getSize();
+    }
+
+    /**
+     * Sets the frame of this JPanel
+     *
+     * @param frame JFrame to be set.
+     */
+    public void setFrame(JFrame frame) {
+        this.frame = frame;
     }
 
     /**
@@ -71,8 +92,46 @@ public class KochDrawPanel extends JPanel {
      */
     public void paint(Graphics graphics) {
         Graphics2D graphics2D = (Graphics2D) graphics;
+        clearDrawing(graphics2D);
+        if (snowflakeAdded()) {
+            paintSnowflake(graphics2D);
+        }
+        else {
+            super.paint(graphics);
+        }
+    }
+
+    /**
+     * Clears a drawing of a KochSnowflake from this Panel
+     *
+     * @param graphics2D Graphics2D object used to draw on this panel
+     */
+    private void clearDrawing(Graphics2D graphics2D) {
+        super.paint(graphics2D);
+    }
+
+    /**
+     * Finds out if a snowflake has been belongs to this Panel yet
+     *
+     * @return boolean as described
+     */
+    private boolean snowflakeAdded() {
+        return snowflake != null;
+    }
+    /**
+     * Paints a koch snowflake onto this JPanel
+     */
+    private void paintSnowflake(Graphics2D graphics2D) {
         adjustSnowflake();
-        previousJFrameSize = frame.getSize();
+        resetPrevSize();
+        drawSides(graphics2D);
+    }
+
+    /**
+     * Draws the sides of the snowflake belonging to this Panel onto itself
+     */
+    private void drawSides(Graphics2D graphics2D) {
+        assert snowflakeAdded(): "A snowflake hasn't been added to this JPanel yet!";
         for (Line2D side : snowflake.getSides()) {
             graphics2D.draw(side);
         }
@@ -84,6 +143,7 @@ public class KochDrawPanel extends JPanel {
      * This is intended to be called each time the JFrame containing this JPanel is resized.
      */
     public void adjustSnowflake() {
+        assert snowflakeAdded(): "A snowflake hasn't been added to this JPanel yet!";
         double resizeCoef = resizeCoef();
         Point2D.Double newCenter = center();
         this.snowflake = this.snowflake.transform(newCenter, resizeCoef);
@@ -100,15 +160,6 @@ public class KochDrawPanel extends JPanel {
     }
 
     /**
-     * Finds the dimensions of the JFrame that holds this JPanel
-     *
-     * @return Dimension object describing the width and height of the inputted JFrame
-     */
-    private Dimension jFrameDimensions() {
-        return new Dimension(frame.getWidth(), frame.getHeight());
-    }
-
-    /**
      * Finds the coefficient that the snowflake should be resized by whenever the JFrame is resized
      *
      * I.e. what all the measurements for the snowflake should be multiplied by when the JFrame is resized
@@ -116,12 +167,12 @@ public class KochDrawPanel extends JPanel {
      * @return double for the resize coefficient as described
      */
     public double resizeCoef() {
-        Dimension currJFrameDims = jFrameDimensions();
-        if (currJFrameDims.getHeight() <= currJFrameDims.getWidth()){
-            return currJFrameDims.getHeight() / previousJFrameSize.getHeight();
+        Dimension currDims = getSize();
+        if (currDims.getHeight() <= currDims.getWidth()){
+            return currDims.getHeight() / prevSize.getHeight();
         }
         else {
-            return currJFrameDims.getWidth() / previousJFrameSize.getWidth();
+            return currDims.getWidth() / prevSize.getWidth();
         }
     }
 }
