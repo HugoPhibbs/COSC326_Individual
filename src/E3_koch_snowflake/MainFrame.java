@@ -9,21 +9,29 @@ import java.awt.*;
 public class MainFrame extends JFrame {
 
     /**
+     * Main panel to store all other components\
+     */
+    private final JPanel mainPanel = new JPanel();
+
+    /**
+     * Panel to hold components relating to getting an order of input from a user
+     */
+    private JPanel inputPanel;
+
+    /**
      * KochDrawPanel that is used to draw a Koch Snowflake
      */
     KochDrawPanel drawPanel;
 
     /**
-     * Button for user to confirm their choice for which order Snowflake they would like
-     */
-    JButton enterOrderButton;
-
-    /**
      * TextField for user to to enter which order snowflake they would like
      */
-    JTextField enterOrderTextField;
-    private JButton button1;
-    private JTextField textField1;
+    JTextField inputOrderTextField;
+
+    /**
+     * Label to let user know if their input is correct or not, giving them feedback if needed
+     */
+    JLabel inputOrderResultLabel;
 
     /**
      * Constructor for a MainFrame
@@ -46,78 +54,126 @@ public class MainFrame extends JFrame {
         return new Dimension(sideLength, sideLength);
     }
 
-    public static void main(String[] args) {
-        MainFrame frame = new MainFrame();
+    /**
+     * Initializes this JFrame
+     */
+    private void init() {
+        setCharacteristics();
+        initMainPanel();
+        initDrawPanel();
+        initInputPanel();
+    }
+
+    /**
+     * Initializes the panel for drawing a snowflake
+     */
+    private void initDrawPanel() {
+        this.drawPanel = new KochDrawPanel();
+        drawPanel.setFrame(this);
+        mainPanel.add(drawPanel, BorderLayout.CENTER);
+        drawPanel.resetPrevSize();
+    }
+
+    /**
+     * Initializes the main panel that is the master component to other components
+     */
+    private void initMainPanel() {
+        mainPanel.setLayout(new BorderLayout());
+    }
+
+    /**
+     * Initializes the input order panel
+     */
+    private void initInputPanel() {
+        this.inputPanel = new JPanel();
+        mainPanel.add(inputPanel, BorderLayout.SOUTH);
+        inputPanel.setBackground(Color.GREEN);
+        inputPanel.setSize(50, 50);
+        inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+        initInputOrderLabel();
+        initInputOrderTextField();
+        initInputOrderButton();
+        initResultLabel();
+    }
+
+    /**
+     * Initializes the input order label
+     */
+    private void initInputOrderLabel() {
+        JLabel inputLabel = new JLabel("Input an order for a snowflake");
+        inputLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        inputPanel.add(inputLabel);
+    }
+
+    /**
+     * Initializes a label to let user know if their input is correct or not, giving them feedback if needed
+     */
+    private void initResultLabel() {
+        inputOrderResultLabel = new JLabel();
+        inputPanel.add(inputOrderResultLabel);
+        inputOrderResultLabel.setForeground(Color.RED);
     }
 
 
     /**
-     * Initializes this JFrame
-     *
+     * Initializes the input order button
      */
-    private void init() {
+    private void initInputOrderButton() {
+        JButton inputButton = new JButton("Enter");
+        inputButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        inputPanel.add(inputButton);
+        inputButton.addActionListener(e -> inputOrderButtonPressed());
+    }
+
+    /**
+     * Handles the pressing of button to input an order of snowflake from a user
+     */
+    private void inputOrderButtonPressed() {
+        String order = inputOrderTextField.getText();
+        if (!KochSnowflake.orderIsValid(order)) {
+            invalidOrderEntered();
+        }
+        else {
+            validOrderEntered(Integer.parseInt(order));
+        }
+    }
+
+    /**
+     * Handles when a valid order of snowflake has been entered by a user
+     *
+     * @param order int for an inputted order
+     */
+    private void validOrderEntered(int order) {
+        inputOrderTextField.setText("");
+        drawPanel.addNewSnowflake(order);
+        setTitle(String.format("Koch Snowflake of order %s", order));
+        inputOrderResultLabel.setText("");
+    }
+
+    /**
+     * Handles when a user enters an input that is invalid
+     */
+    private void invalidOrderEntered() {
+        inputOrderResultLabel.setText(KochSnowflake.orderIsValidRequirements());
+    }
+
+    /**
+     * Initializes the input order text-field
+     */
+    private void initInputOrderTextField() {
+        inputOrderTextField = new JTextField();
+        inputOrderTextField.setMaximumSize(new Dimension(50, 50));
+        inputPanel.add(inputOrderTextField);
+    }
+
+    /**
+     * Sets the characteristics of this frame
+     */
+    private void setCharacteristics() {
+        setContentPane(mainPanel);
         setSize(dims());
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     }
 
-    /**
-     * Creates the components that this JFrame holds
-     */
-    private void createComponents() {
-        createPanels();
-        createEnterOrderTextField();
-        createEnterOrderButton();
-        createResultLabel();
-    }
-
-    private void createPanels() {
-        createDrawPanel();
-
-    }
-
-    /**
-     * Creates a JPanel that holds components relating to asking a user which order snowflake they would like
-     */
-    private void createInputPanel() {
-
-    }
-
-    /**
-     * Creates a JLabel that asks a user which order snowflake they would like
-     */
-    private void createEnterOrderLabel() {
-
-    }
-
-    /**
-     * Creates the JPanel that is used to draw a Koch Snowflake
-     */
-    private void createDrawPanel() {
-
-    }
-
-    /**
-     * Creates a label that displays a result of the user entering in which
-     * order snowflake they would like
-     */
-    private void createResultLabel() {
-
-    }
-
-    /**
-     * Creates the button that a user presses when they want to
-     * submit which order they would like
-     */
-    private void createEnterOrderButton() {
-
-    }
-
-    /**
-     * Creates a textField that a user enters which order TextField they would like
-     */
-    public void createEnterOrderTextField() {
-
-    }
 }
