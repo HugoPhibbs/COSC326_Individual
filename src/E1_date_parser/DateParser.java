@@ -1,5 +1,6 @@
 package E1_date_parser;
 
+import java.lang.reflect.Array;
 import java.time.YearMonth;
 import java.util.*;
 
@@ -124,53 +125,6 @@ public class DateParser {
         checkWhiteSpace(date);
     }
 
-    // Splitting Dates //
-
-    /**
-     * Splits a date according to a separator, and returns a HashMap containing the parts of the date
-     *
-     * @param date String for a date
-     * @return HashMap containing the parts of the date, keys being parts of the date
-     */
-    private HashMap<String, String> splitDate(String date) {
-        ArrayList<String> splitDateRes = checkTypesOfSeparators(date);
-        ArrayList<String> splitDate = new ArrayList<>(splitDateRes.subList(0, splitDateRes.size()-1));
-        String sep = splitDateRes.get(splitDateRes.size() - 1);
-        checkCorrectNumSeparators(date, sep);
-        checkCorrectNumArguments(splitDate);
-        HashMap<String, String> dateMap = dateArrayListToDict(splitDate);
-        checkWhiteSpace(dateMap);
-        return dateMap;
-    }
-
-    /**
-     * Checks that a date uses only one type of Separator
-     *
-     * NB: For any Date that contains white space: Any white space character in a date will be treated as a separator.
-     * Thus, whitespace in between arguments in a date may not trigger a WhiteSpaceError, But instead a SeparatorTypesError
-     *
-     * // TODO does this method work alright with whitespace?
-     *
-     * @param date String for an inputted date
-     * @throws SeparatorTypesError if the date doesn't use only one type of separator
-     * @return ArrayList containing Strings, the first elements being the date split by a separator, and the last element being the separator that
-     * splits this date.
-     */
-    private ArrayList<String> checkTypesOfSeparators(String date) throws SeparatorTypesError {
-        ArrayList<ArrayList<String>> splitDates = new ArrayList<>();
-        for (String sep : separators) {
-            ArrayList<String> splitDate = new ArrayList<>(Arrays.asList(date.split(sep)));
-            if (splitDate.size() > 1) {
-                splitDate.add(sep);
-                splitDates.add(splitDate);
-            }
-        }
-        if (splitDates.size() != 1) {
-            throw new SeparatorTypesError("Inputted date must use only one type of separator");
-        }
-        return splitDates.get(0);
-    }
-
     /**
      * Checks if an inputted date has any trailing or leading white space
      *
@@ -193,6 +147,77 @@ public class DateParser {
         }
     }
 
+    // Splitting Dates //
+
+    /**
+     * Splits a date according to a separator, and returns a HashMap containing the parts of the date
+     *
+     * @param date String for a date
+     * @return HashMap containing the parts of the date, keys being parts of the date
+     */
+    private HashMap<String, String> splitDate(String date) {
+        ArrayList<String> splitDateRes = checkTypesOfSeparators(date);
+        ArrayList<String> splitDate = new ArrayList<>(splitDateRes.subList(0, splitDateRes.size()-1));
+        String sep = splitDateRes.get(splitDateRes.size() - 1);
+        checkCorrectNumSeparators(date, sep);
+        checkCorrectNumArguments(splitDate); // In-case wasn't triggered above
+        HashMap<String, String> dateMap = dateArrayListToDict(splitDate);
+        checkWhiteSpace(dateMap);
+        return dateMap;
+    }
+
+    /**
+     * Checks that a date uses only one type of Separator
+     *
+     * NB: For any Date that contains white space: Any white space character in a date will be treated as a separator.
+     * Thus, whitespace in between arguments in a date may not trigger a WhiteSpaceError, But instead a SeparatorTypesError
+     *
+     * @param date String for an inputted date
+     * @throws SeparatorTypesError if the date doesn't use only one type of separator
+     * @return ArrayList containing Strings, the first elements being the date split by a separator, and the last element being the separator that
+     * splits this date.
+     */
+    private ArrayList<String> checkTypesOfSeparators(String date) throws SeparatorTypesError {
+        ArrayList<ArrayList<String>> splitDates = checkTypesOfSeparatorsHelper(date);
+        if (splitDates.size() > 1) {
+            throw new SeparatorTypesError("Inputted date must use only one type of separator");
+        }
+        else if (splitDates.size() < 1){
+            throw new SeparatorTypesError("Inputted date does not use any valid separators");
+        }
+        return splitDates.get(0);
+    }
+
+    /**
+     * Helper method for checkTypesOfSeparators(String)
+     *
+     * @param date String for an inputted date from a user
+     * @return ArrayList containing ArrayLists containing Strings for a date split according to each possible separator
+     */
+    private ArrayList<ArrayList<String>> checkTypesOfSeparatorsHelper(String date) {
+        ArrayList<ArrayList<String>> splitDates = new ArrayList<>();
+        for (String sep : separators) {
+            ArrayList<String> splitDate = separateDate(date, sep);
+            if (splitDate.size() > 1) {
+                splitDate.add(sep);
+                splitDates.add(splitDate);
+            }
+        }
+        return splitDates;
+    }
+
+
+    /**
+     * Separates a date according to a separator
+     *
+     * @param date String for a date
+     * @param sep String for a separator
+     * @return ArrayList containing Strings for a split date as described
+     */
+    private ArrayList<String> separateDate(String date, String sep) {
+        return new ArrayList<>(Arrays.asList(date.split(sep)));
+    }
+
     /**
      * Checks that a String contains the correct number of occurrences for a given separator
      *
@@ -206,11 +231,41 @@ public class DateParser {
         long count = date.chars().filter(c -> c == sep.charAt(0)).count();
         assert count > 0: "Date cannot be split according to this separator!";
         if (count > 2) {
-            throw new SeparatorCountError("Date has too many occurrences of it's separator");
+            handleTooManySeparators(date, sep);
         }
         else if (count < 2) {
-            throw new SeparatorCountError("Date has too few occurrences of it's separator");
+            handleTooFewSeparators(date, sep);
         }
+    }
+
+    /**
+     * Handles the case where a date has too many separators
+     *
+     * @param date String
+     * @param sep String for the Separator used to split the inputted date
+     */
+    private void handleTooManySeparators(String date, String sep) {
+        int argCount = countArguments(separateDate(date, sep));
+        String msg = "Date has too many occurrences of it's separator";
+        if (argumentCountTooLarge(argCount)) { // Issue comes hand in hand
+            msg = msg.concat(" and has too many arguments");
+        }
+        throw new SeparatorCountError(msg);
+    }
+
+    /**
+     * Handles the case where a date has too many separators
+     *
+     * @param date String for a date
+     * @param sep String for a separator
+     */
+    private void handleTooFewSeparators(String date, String sep) {
+        int argCount = countArguments(separateDate(date, sep));
+        String msg = "Date has too few occurrences of it's separator";
+        if (argumentCountTooSmall(argCount)) { // Issue comes hand in hand
+            msg = msg.concat(" and has too few arguments");
+        }
+        throw new SeparatorCountError(msg);
     }
 
     /**
@@ -222,19 +277,51 @@ public class DateParser {
      * @param splitDate ArrayList containing Strings for a date split according to its separator. Dates may contain whitespace.
      */
     private void checkCorrectNumArguments(ArrayList<String> splitDate) throws ArgumentCountError {
-        // TODO Account for empty arguments eg "11//12:
+        int argumentCount = countArguments(splitDate);
+        if (argumentCountTooLarge(argumentCount)){
+            throw new ArgumentCountError("Date has too few arguments, please note empty characters are not treated as arguments");
+        }
+        else if (argumentCountTooSmall(argumentCount)) {
+            throw new ArgumentCountError("Date has too many arguments, please note empty characters are not treated as arguments");
+        }
+    }
+
+    /**
+     * Determines if a count for the number of arguments in a date is too large or not
+     *
+     * @param argumentCount int for number of arguments
+     * @return boolean as described
+     */
+    private boolean argumentCountTooLarge(int argumentCount) {
+        return argumentCount > 3;
+    }
+
+    /**
+     * Determines if a count for the number of arguments in a date is too small or not
+     *
+     * @param argumentCount int for number of arguments
+     * @return boolean as described
+     */
+    private boolean argumentCountTooSmall(int argumentCount) {
+        return argumentCount < 3;
+    }
+
+    /**
+     * Counts the number of arguments in a split date
+     *
+     * Empty characters are not counted as arguments
+     *
+     * @param splitDate ArrayList containing Strings for a split date
+     * @return an int for the number of arguments as described
+     */
+    private int countArguments(ArrayList<String> splitDate) {
         int argumentCount = 0;
         for (String part : splitDate){
             if (!part.equals("")){
                 argumentCount ++;
             }
         }
-        if (argumentCount < 3){
-            throw new ArgumentCountError("Date has too few arguments, please note empty characters are not treated as arguments");
-        }
-        else if (argumentCount> 3) {
-            throw new ArgumentCountError("Date has too many arguments, please note empty characters are not treated as arguments");
-        }
+        return argumentCount;
     }
 
     /***
