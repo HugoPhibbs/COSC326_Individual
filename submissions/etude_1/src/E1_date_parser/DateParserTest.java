@@ -2,7 +2,8 @@ package E1_date_parser;
 
 import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DateParserTest {
 
@@ -20,8 +21,9 @@ public class DateParserTest {
     public void testIrrelevantInput() {
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper(null));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper(""));
-        assertThrows(SeparatorError.class, () -> dateParser.parseDateHelper("-1"));
-        assertThrows(ParseError.class, () -> dateParser.parseDateHelper("Hugo"));
+        assertThrows(SeparatorCountError.class, () -> dateParser.parseDateHelper("-1"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("9"));
+        assertThrows(SeparatorTypesError.class, () -> dateParser.parseDateHelper("Hugo"));
         assertThrows(ParseError.class, () -> dateParser.parseDateHelper("Hugo Thomas Phibbs"));
     }
 
