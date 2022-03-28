@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="submissions/etude_1/src"/>
+	<classpathentry kind="lib" path="out/artifacts/date_parser_jar/COSC326_Individual.jar"/>
+	<classpathentry kind="lib" path="out/artifacts/date_parser_jar/date_parser.jar"/>
+	<classpathentry kind="lib" path="out/artifacts/koch_snowflake_jar/COSC326_Individual.jar"/>
+	<classpathentry kind="output" path="out/production/COSC326_Individual"/>
+</classpath>
