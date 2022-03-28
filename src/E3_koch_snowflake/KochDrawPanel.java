@@ -33,16 +33,7 @@ public class KochDrawPanel extends JPanel {
      *
      */
     KochDrawPanel() {
-        init();
-    }
-
-    /**
-     * Initializes this Panel.
-     *
-     * Does common actions that are the same for no matter what constructor is used
-     */
-    private void init() {
-        resetPrevSize();
+        ///init();
     }
 
     /**
@@ -52,7 +43,7 @@ public class KochDrawPanel extends JPanel {
      */
     public void addNewSnowflake(int order) {
         snowflake = new KochSnowflake(order, sideLength(), center());
-        paint(getGraphics()); // TODO this line may cause issues!
+        paint(getGraphics());
     }
 
     /**
@@ -118,6 +109,7 @@ public class KochDrawPanel extends JPanel {
     private boolean snowflakeAdded() {
         return snowflake != null;
     }
+
     /**
      * Paints a koch snowflake onto this JPanel
      */
@@ -162,12 +154,17 @@ public class KochDrawPanel extends JPanel {
     /**
      * Finds the coefficient that the snowflake should be resized by whenever the JFrame is resized
      *
+     * If this JPanel has not been resized before, then it just returns 1
+     *
      * I.e. what all the measurements for the snowflake should be multiplied by when the JFrame is resized
      *
      * @return double for the resize coefficient as described
      */
     public double resizeCoef() {
         Dimension currDims = getSize();
+        if (prevSize == null) {
+            return 1;
+        }
         if (currDims.getHeight() <= currDims.getWidth()){
             return currDims.getHeight() / prevSize.getHeight();
         }

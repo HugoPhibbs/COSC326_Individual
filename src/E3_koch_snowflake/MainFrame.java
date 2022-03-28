@@ -19,19 +19,24 @@ public class MainFrame extends JFrame {
     private JPanel inputPanel;
 
     /**
+     * Label to ask user to enter which order snowflake they would like
+     */
+    private JLabel inputLabel;
+
+    /**
      * KochDrawPanel that is used to draw a Koch Snowflake
      */
-    KochDrawPanel drawPanel;
+    private KochDrawPanel drawPanel;
 
     /**
      * TextField for user to to enter which order snowflake they would like
      */
-    JTextField inputOrderTextField;
+    private JTextField inputOrderTextField;
 
     /**
-     * Label to let user know if their input is correct or not, giving them feedback if needed
+     * Button for user to enter which order snowflake they would like
      */
-    JLabel inputOrderResultLabel;
+    JButton inputButton;
 
     /**
      * Constructor for a MainFrame
@@ -62,6 +67,7 @@ public class MainFrame extends JFrame {
         initMainPanel();
         initDrawPanel();
         initInputPanel();
+        pack();
     }
 
     /**
@@ -71,7 +77,6 @@ public class MainFrame extends JFrame {
         this.drawPanel = new KochDrawPanel();
         drawPanel.setFrame(this);
         mainPanel.add(drawPanel, BorderLayout.CENTER);
-        drawPanel.resetPrevSize();
     }
 
     /**
@@ -87,7 +92,7 @@ public class MainFrame extends JFrame {
     private void initInputPanel() {
         this.inputPanel = new JPanel();
         mainPanel.add(inputPanel, BorderLayout.SOUTH);
-        inputPanel.setBackground(Color.GREEN);
+        inputPanel.setBackground(Color.CYAN);
         inputPanel.setSize(50, 50);
         inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
         initInputOrderLabel();
@@ -100,7 +105,8 @@ public class MainFrame extends JFrame {
      * Initializes the input order label
      */
     private void initInputOrderLabel() {
-        JLabel inputLabel = new JLabel("Input an order for a snowflake");
+        inputLabel = new JLabel();
+        resetInputOrderLabelText();
         inputLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         inputPanel.add(inputLabel);
     }
@@ -109,17 +115,21 @@ public class MainFrame extends JFrame {
      * Initializes a label to let user know if their input is correct or not, giving them feedback if needed
      */
     private void initResultLabel() {
-        inputOrderResultLabel = new JLabel();
+        /**
+         * Label to let user know if their input is correct or not, giving them feedback if needed
+         */
+        JLabel inputOrderResultLabel = new JLabel(KochSnowflake.orderIsValidRequirements());
+        inputOrderResultLabel.setVisible(false);
         inputPanel.add(inputOrderResultLabel);
         inputOrderResultLabel.setForeground(Color.RED);
     }
-
 
     /**
      * Initializes the input order button
      */
     private void initInputOrderButton() {
-        JButton inputButton = new JButton("Enter");
+        inputButton = new JButton("Enter");
+        inputButton.setMaximumSize(new Dimension(65 ,20));
         inputButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         inputPanel.add(inputButton);
         inputButton.addActionListener(e -> inputOrderButtonPressed());
@@ -144,17 +154,36 @@ public class MainFrame extends JFrame {
      * @param order int for an inputted order
      */
     private void validOrderEntered(int order) {
-        inputOrderTextField.setText("");
+        resetInputOrderLabelText();
+        inputButton.setEnabled(false);
         drawPanel.addNewSnowflake(order);
+        inputButton.setEnabled(true);
         setTitle(String.format("Koch Snowflake of order %s", order));
-        inputOrderResultLabel.setText("");
+    }
+
+    /**
+     * Resets the text displayed on the label to tell a user to input an order of snowflake
+     */
+    private void resetInputOrderLabelText(){
+        inputLabel.setText(inputOrderLabelNormalText());
+    }
+
+    /**
+     * Finds the text that should be normally displayed to a user asking them to enter which
+     * order snowflake they would like
+     *
+     * @return String as described
+     */
+    private String inputOrderLabelNormalText() {
+        return "Input an order for a snowflake";
     }
 
     /**
      * Handles when a user enters an input that is invalid
      */
     private void invalidOrderEntered() {
-        inputOrderResultLabel.setText(KochSnowflake.orderIsValidRequirements());
+        inputLabel.setText(String.format("%s - %s", inputOrderLabelNormalText(), KochSnowflake.orderIsValidRequirements()));
+        inputOrderTextField.setText("");
     }
 
     /**
@@ -171,7 +200,9 @@ public class MainFrame extends JFrame {
      */
     private void setCharacteristics() {
         setContentPane(mainPanel);
-        setSize(dims());
+        Dimension dims = dims();
+        setSize(dims);
+        setPreferredSize(dims);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }

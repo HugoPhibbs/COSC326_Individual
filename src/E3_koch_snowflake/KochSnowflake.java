@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
- * Program class to draw a Koch snowflake according to input from a user
+ * Class to represent a KochSnowflake
  */
 public class KochSnowflake {
 
